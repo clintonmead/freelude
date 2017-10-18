@@ -15,8 +15,8 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: nightly-2017-09-04
-# resolver: lts-9.2
+resolver: nightly-2017-10-18
+# resolver: lts-9.9
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -38,8 +38,7 @@ resolver: nightly-2017-09-04
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - location: '.'
-- location: '/home/clinton/IdeaProjects/indextype'
-  extra-dep: true
+#  extra-dep: true
 - location:
     git: git@github.com:DanielG/ghc-mod.git
     commit: 6282cd306bbac4119fbc8dbf6bb1175d2991d345
@@ -51,7 +50,7 @@ packages:
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
-extra-deps: [cabal-helper-0.8.0.0, ghc-mod-5.8.0.0, indextype-0.2]
+extra-deps: [cabal-helper-0.8.0.0, ghc-mod-5.8.0.0, indextype-0.3.0.0]
 
 # Override default flag values for local packages and extra-deps
 flags: {}

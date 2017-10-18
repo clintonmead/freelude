@@ -7,11 +7,8 @@
 module Main where
 
 import Freelude.Impl.Category
-import Freelude.Impl.Functor hiding (pure, (=<<))
-import Prelude hiding ((.), fmap)
-
-myapp :: Prelude.Monad f => f (a -> b) -> f a -> f b
-myapp m1 m2 = (\x -> (\y -> pure (x y)) =<< m2) =<< m1
+import Freelude.Impl.ExoFunctor
+import Prelude hiding ((.), fmap, pure, (=<<))
 
 main :: IO ()
 main = pure ()
