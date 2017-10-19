@@ -1,5 +1,5 @@
 name:                freelude
-version:             0.1.0.0
+version:             0.1.0.1
 synopsis:            A generalisation of the Category->Functor->Applicative->Monad hierarchy and more
 description:
   This package generalises classes like Category, Functor etc to allow them to be defined on more data types,
@@ -16,7 +16,7 @@ category:            Web
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
-
+compiler:            GHC >= 8.2
 library
   hs-source-dirs:      src
   exposed-modules:
