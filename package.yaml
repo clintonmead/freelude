@@ -1,0 +1,37 @@
+name:                freelude
+version:             0.3.1.0
+github:              "clintonmead/freelude"
+license:             BSD3
+author:              "Clinton Mead"
+maintainer:          "clintonmead@gmail.com"
+copyright:           "Copyright: (c) 2018 Clinton Mead"
+
+synopsis:            A generalisation of the Category->Functor->Applicative->Monad hierarchy and more
+category:            Prelude
+
+description:
+  This package generalises classes like Category, Functor etc to allow them to be defined on more data types,
+  for example, tuples and sets, whilst still attempting to maintain backward compatability.
+
+
+  See the module "Freelude" for more details.
+
+dependencies:
+- base < 99
+- indextype
+- containers
+- transformers
+- array
+
+library:
+  source-dirs: src
+  ghc-options: -Wall
+
+tests:
+  test:
+    source-dirs:
+    - test
+    - src
+    main: DocTest.hs
+    dependencies:
+    - doctest

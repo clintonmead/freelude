@@ -181,8 +181,10 @@ And indeed, this works roughly how we would expect:
 >>> f_l <*> [Just 3, Nothing]
 [Just 5,Nothing,Just 9,Nothing,Just 7,Nothing]
 
-GHC even knows our functor laws:
+GHC even doesn't complain when we try to assert the function laws,
+as long as we @AllowAmbiguousTypes@.
 
+>>> :set -XAllowAmbiguousTypes
 >>> :{
 let
   eqT :: a -> a -> ()
