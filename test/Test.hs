@@ -1,6 +1,5 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE TypeInType #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
@@ -22,20 +21,17 @@ f2 x y z = x . y . z
 f2' x y z = x . y . z
 
 f3 x y = fmap x . fmap y
-f3' x y = fmap x . fmap y
 
 f4 x y = fmap (x . y)
-f4' x y = fmap (x . y)
 
-g :: a -> a -> a
-g = undefined
+eqT :: a -> a -> ()
+eqT _ _ = ()
 
-f5 x y = g (f3 x y) (f4 x y)
+f5 :: (IsSemigroupoid t1 p a2 a3,  IsSemigroupoid t2 p a1 a2, IsSemigroupoid t3 p a1 a3) => t1 -> t2 -> ()
+f5 x y = f3 x y `eqT` f4 x y
 
-f6 x y = exomap x . exomap y
-f6' x y = exomap x . exomap y
+--f6 x y = exomap x . exomap y
 
-f7 x y = exomap (x . y)
-f7' x y = exomap (x . y)
+--f7 x y = exomap (x . y)
 
-f8 x y = g (f6 x y) (f7 x y)
+--f8 x y = g (f6 x y) (f7 x y)

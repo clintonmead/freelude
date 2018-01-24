@@ -326,8 +326,6 @@ type family FunctorDstC' (p :: Type) :: Maybe (Type -> Constraint)
 type FunctorSrcC p a = FromMaybeConstraintFunc (FunctorSrcC' p) a
 type FunctorDstC p a = FromMaybeConstraintFunc (FunctorDstC' p) a
 
---type FunctorC cat p a b ra rb = (ra ~ FunctorT p a, rb ~ FunctorT p b, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b)
-
 class Semigroupoid cat => Functor cat p where
   fmap ::
     (ra ~ FunctorT p a, rb ~ FunctorT p b, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b) =>
@@ -336,8 +334,6 @@ class Semigroupoid cat => Functor cat p where
   default fmap ::
     (Lift p, Pure p, ra ~ FunctorT p a, rb ~ FunctorT p b, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b, cat ~ FunctionP, FunctorSrcC' p ~ 'Nothing, FunctorDstC' p ~ 'Nothing) =>
     CategoryT cat a b -> CategoryT cat ra rb
---    (Applicative p, cat ~ FunctionP, ra ~ FunctorT p a, rb ~ FunctorT p b, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC' p ~ 'Nothing, FunctorDstC' p ~ 'Nothing) =>
---    CategoryT cat a b -> CategoryT cat ra rb
   fmap f x = liftA2 (const f) (pure x) x
 
 type UnconstrainedFunctor cat p = (Functor cat p, FunctorSrcC' p ~ 'Nothing, FunctorDstC' p ~ 'Nothing)

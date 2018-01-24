@@ -143,6 +143,7 @@ This does have some uses but I consider it surprising. arguably a more sensible 
 
 >>> :set -XTypeFamilies
 >>> :set -XFlexibleContexts
+>>> :set -XTypeInType
 >>> fmap (*3) (1,2)
 (3,6)
 
@@ -179,6 +180,15 @@ And indeed, this works roughly how we would expect:
 
 >>> f_l <*> [Just 3, Nothing]
 [Just 5,Nothing,Just 9,Nothing,Just 7,Nothing]
+
+GHC even knows our functor laws:
+
+>>> :{
+let
+  eqT :: a -> a -> ()
+  eqT _ _ = ()
+  checkLaws x y = (fmap x . fmap y) `eqT` (fmap (x . y))
+:}
 
 == Applicatives
 
