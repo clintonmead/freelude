@@ -166,6 +166,18 @@ array (1,3) [(1,12),(2,15),(3,18)]
 Note that both in the case of sets and unboxed arrays, ordinary 'Prelude.Functor' instances
 can not be defined for them as there are constraints on their parameters.
 
+And finally, we can even define functors over monomorphic containers
+like 'ByteString' and 'Text':
+
+>>> Data.Char.toUpper <$> "Hello World"
+"HELLO WORLD"
+
+>>> Data.Char.toUpper <$> (Data.Text.pack "Hello World")
+"HELLO WORLD"
+
+>>> Data.Char.toUpper <$> (Data.Text.Lazy.pack "Hello World")
+"HELLO WORLD"
+
 We also further generalise 'Functor'. Instead of thinking of 'Functor'
 as a function between functions, we think of it as a function between categories.
 So `fmap` can be defined on other categories.

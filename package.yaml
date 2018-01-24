@@ -22,6 +22,8 @@ dependencies:
 - containers
 - transformers
 - array
+- bytestring
+- text
 
 library:
   source-dirs: src

@@ -65,6 +65,14 @@ import qualified Data.Array.IArray
 import Data.Array.IArray (IArray)
 import Data.Array.Unboxed (UArray)
 
+import qualified Data.Text as StrictText
+import qualified Data.Text.Lazy as LazyText
+
+import qualified Data.ByteString as StrictByteString
+import qualified Data.ByteString.Lazy as LazyByteString
+
+import Data.Word (Word8)
+
 type family CategoryT (p :: Type) (a :: Type) (b :: Type) = (f :: Type) | f -> p a b
 type family ExoCategoryT (p :: Type) (a :: Type) (b :: Type) = (f :: Type) | f -> p a b
 type family CategorySrcC' (p :: Type) :: Maybe (Type -> Constraint)
@@ -563,6 +571,68 @@ instance Apply (BasicFunctorP First) where
 instance Monad (BasicFunctorP First) where
   (>>=) = (Prelude.>>=)
   (>>) = (Prelude.>>)
+
+data StrictOrLazyP = StrictP | LazyP
+
+data TextP (p :: StrictOrLazyP)
+type instance FunctorSrcC' (TextP _) = 'Just ((~) Char)
+type instance FunctorDstC' (TextP _) = 'Just ((~) Char)
+
+type instance FunctorT (TextP 'StrictP) Char = StrictText.Text
+instance Functor FunctionP (TextP 'StrictP) where
+  fmap = StrictText.map
+instance Pure (TextP 'StrictP) where
+  pure = StrictText.singleton
+instance Lift (TextP 'StrictP) where
+  -- Just go to and from lists. Slow but correct
+  -- This can probably be improved
+  liftA2 f x y = StrictText.pack (liftA2 f (StrictText.unpack x) (StrictText.unpack y))
+instance Monad (TextP 'StrictP) where
+  -- Also going through lists. I'm quite sure this can be improved.
+  x >>= f = StrictText.pack (StrictText.unpack x >>= (StrictText.unpack . f))
+
+type instance FunctorT (TextP 'LazyP) Char = LazyText.Text
+instance Functor FunctionP (TextP 'LazyP) where
+  fmap = LazyText.map
+instance Pure (TextP 'LazyP) where
+  pure = LazyText.singleton
+instance Lift (TextP 'LazyP) where
+  -- Just go to and from lists. Slow but correct
+  -- This can probably be improved
+  liftA2 f x y = LazyText.pack (liftA2 f (LazyText.unpack x) (LazyText.unpack y))
+instance Monad (TextP 'LazyP) where
+  -- Also going through lists. I'm quite sure this can be improved.
+  x >>= f = LazyText.pack (LazyText.unpack x >>= (LazyText.unpack . f))
+
+data ByteStringP (p :: StrictOrLazyP)
+type instance FunctorSrcC' (ByteStringP _) = 'Just ((~) Word8)
+type instance FunctorDstC' (ByteStringP _) = 'Just ((~) Word8)
+
+type instance FunctorT (ByteStringP 'StrictP) Word8 = StrictByteString.ByteString
+instance Functor FunctionP (ByteStringP 'StrictP) where
+  fmap = StrictByteString.map
+instance Pure (ByteStringP 'StrictP) where
+  pure = StrictByteString.singleton
+instance Lift (ByteStringP 'StrictP) where
+  -- Just go to and from lists. Slow but correct
+  -- This can probably be improved
+  liftA2 f x y = StrictByteString.pack (liftA2 f (StrictByteString.unpack x) (StrictByteString.unpack y))
+instance Monad (ByteStringP 'StrictP) where
+  -- Also going through lists. I'm quite sure this can be improved.
+  x >>= f = StrictByteString.pack (StrictByteString.unpack x >>= (StrictByteString.unpack . f))
+
+type instance FunctorT (ByteStringP 'LazyP) Word8 = LazyByteString.ByteString
+instance Functor FunctionP (ByteStringP 'LazyP) where
+  fmap = LazyByteString.map
+instance Pure (ByteStringP 'LazyP) where
+  pure = LazyByteString.singleton
+instance Lift (ByteStringP 'LazyP) where
+  -- Just go to and from lists. Slow but correct
+  -- This can probably be improved
+  liftA2 f x y = LazyByteString.pack (liftA2 f (LazyByteString.unpack x) (LazyByteString.unpack y))
+instance Monad (ByteStringP 'LazyP) where
+  -- Also going through lists. I'm quite sure this can be improved.
+  x >>= f = LazyByteString.pack (LazyByteString.unpack x >>= (LazyByteString.unpack . f))
 
 -- Arrays
 
