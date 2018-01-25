@@ -8,7 +8,7 @@ module Freelude.Impl.ExoFunctor (
   ExoFunctor(exomap), ($), ($!)
 ) where
 
-import Freelude.Impl.Category
+import Freelude.Impl.Classes
 import Prelude hiding (id, ($), ($!), (<*>), (<$>))
 import Data.Functor.Identity (Identity(Identity))
 

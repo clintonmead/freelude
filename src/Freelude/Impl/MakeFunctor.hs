@@ -9,7 +9,7 @@ module Freelude.Impl.MakeFunctor (
 import Prelude hiding (Functor, fmap, Monad)
 import qualified Prelude
 import Data.Kind (Type)
-import Freelude.Impl.Category
+import Freelude.Impl.Classes
 import qualified Control.Applicative
 
 newtype MakeFunctor f a = MakeFunctor { getFunctor :: f a }

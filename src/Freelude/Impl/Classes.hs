@@ -8,7 +8,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE UndecidableSuperClasses #-}
 
-module Freelude.Impl.Category (
+module Freelude.Impl.Classes (
   Semigroupoid((.)), (<<<), (>>>),
   Category(id),
   Const(const),
@@ -362,7 +362,7 @@ class Functor cat p => ConstFunctor cat p where
     b -> CategoryT cat ra rb
   (<$) = fmap . const
 
-instance {-# OVERLAPPABLE #-} (Functor cat p, Const cat) => ConstFunctor cat p
+instance (Functor cat p, Const cat) => ConstFunctor cat p
 
 infixl 4 <*>, <*, *>, <**>
 
@@ -381,15 +381,15 @@ class Functor FunctionP p => Lift p where
   (<*) = liftA2 const
 
 class Lift p => Apply p where
-  (<*>) :: FunctorT p (a -> b) -> FunctorT p a -> FunctorT p b
-  default (<*>) :: (FunctorSrcC' p ~ 'Nothing, FunctorDstC' p ~ 'Nothing) => FunctorT p (a -> b) -> FunctorT p a -> FunctorT p b
+  (<*>) :: FunctorDstC p b => FunctorT p (a -> b) -> FunctorT p a -> FunctorT p b
+  default (<*>) :: (FunctorSrcC' p ~ 'Nothing, FunctorDstC p b) => FunctorT p (a -> b) -> FunctorT p a -> FunctorT p b
   (<*>) = liftA2 id
 
-(<**>) :: Apply p => FunctorT p a -> FunctorT p (a -> b) -> FunctorT p b
+(<**>) :: (Apply p, FunctorDstC p b) => FunctorT p a -> FunctorT p (a -> b) -> FunctorT p b
 (<**>) = flip (<*>)
 
 class Pure p where
-  pure :: (FunctorDstC p a) => a -> FunctorT p a
+  pure :: FunctorDstC p a => a -> FunctorT p a
 
 type Applicative p = (Apply p, Pure p)
 
@@ -658,6 +658,7 @@ instance (Ix i, Num i) => Pure (BasicFunctorP (Array i)) where
   pure = arrayPure
 instance (Ix i, Num i) => Lift (BasicFunctorP (Array i)) where
   liftA2 = arrayLiftA2
+instance (Ix i, Num i) => Apply (BasicFunctorP (Array i))
 
 data UArrayP (indexT :: Type)
 
@@ -692,6 +693,7 @@ instance Pure SetP where
   pure = Data.Set.singleton
 instance Lift SetP where
   liftA2 f x y = Data.Set.fromList (Control.Applicative.liftA2 f (Data.Set.toList x) (Data.Set.toList y))
+instance Apply SetP
 instance Monad SetP where
   x >>= f = Data.Set.fromList (Data.Set.toList x >>= (Data.Set.toList . f))
 

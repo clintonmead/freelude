@@ -6,7 +6,7 @@ module Freelude.Impl.CategoryAsMonoid (
 ) where
 
 import Prelude hiding ((.), id)
-import Freelude.Impl.Category
+import Freelude.Impl.Classes
 import Data.Semigroup (Semigroup((<>)))
 
 newtype CategoryAsMonoid a = CategoryAsMonoid { getCategoryAsMonoid :: a }

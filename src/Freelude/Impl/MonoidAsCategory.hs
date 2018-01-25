@@ -7,7 +7,7 @@ module Freelude.Impl.MonoidAsCategory (
   MonoidAsCategory(MonoidAsCategory, getMonoidAsCategory)
   ) where
 
-import Freelude.Impl.Category
+import Freelude.Impl.Classes
 import Data.Void (Void)
 import Data.Semigroup (Semigroup((<>)))
 import Data.Monoid (Monoid(mempty))

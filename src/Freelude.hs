@@ -270,7 +270,7 @@ fromList [1,2,3,4,5,9]
 
 = Defining your own instances
 
-I'll put a tutorial here at some point, but there's plenty of examples in "Freelude.Impl.Category"
+I'll put a tutorial here at some point, but there's plenty of examples in "Freelude.Impl.Classes"
 
 = Rationale behind design
 
@@ -298,11 +298,11 @@ This will cause dependency hell, but building this library with '--allow-newer' 
 
 module Freelude (
   module Prelude,
-  module Freelude.Impl.Category,
+  module Freelude.Impl.Classes,
   module Freelude.Impl.ExoFunctor
 ) where
 
-import Freelude.Impl.Category
+import Freelude.Impl.Classes
 import Freelude.Impl.ExoFunctor
 import Prelude hiding (
   Functor(fmap), (<$>), (<$),
