@@ -4,11 +4,15 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableSuperClasses #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE TypeInType #-}
 
 module Freelude.Impl.Compat (
   ) where
 
 import Prelude hiding (Functor, fmap, (<$>))
+import Data.Kind (Type)
 
 import qualified Freelude.Impl.Classes as Class
 import Freelude.Impl.Classes (
@@ -20,8 +24,17 @@ import Freelude.Impl.Classes (
   FunctorSrcC, FunctorDstC
   )
 
-class    Class.Functor FunctionP (BasicFunctorP t) => Functor t
-instance Class.Functor FunctionP (BasicFunctorP t) => Functor t
+class    Class.Functor FunctionP (BasicFunctorP f) => Functor f
+instance Class.Functor FunctionP (BasicFunctorP f) => Functor f
 
-class    (Class.Functor FunctionP p, FunctorSrcC p a, FunctorDstC p a, t ~ Class.FunctorT p a) => MonoFunctor' t p a
-instance (Class.Functor FunctionP p, FunctorSrcC p a, FunctorDstC p a, t ~ Class.FunctorT p a) => MonoFunctor' t p a
+
+
+
+
+
+--class    Class.Functor FunctionP (SimpleFunctorP src_c dst_c f) => UnrestrictedFunctor f
+--instance Class.Functor FunctionP (SimpleFunctorP src_c dst_c f) => UnrestrictedFunctor f
+
+--UnrestrictedFunctor f, Ord a => (a -> b) -> f a -> f b
+
+--type MonoFunctor a t = forall p. (Functor p, FunctorT p a ~ t) => t

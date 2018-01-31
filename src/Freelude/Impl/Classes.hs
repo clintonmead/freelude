@@ -326,7 +326,9 @@ instance (Semigroupoid p1, Semigroupoid p2, Semigroupoid p3, Semigroupoid p4, Se
 
 -- Functor
 
-type family FunctorT (p :: Type) (a :: Type) = (b :: Type) | b -> p a
+type family FunctorT (p :: Type) a = b | b -> p a
+
+type FunctorTC p a ra = (FunctorT p a ~ ra)
 
 type family FunctorSrcC' (p :: Type) :: Maybe (Type -> Constraint)
 type family FunctorDstC' (p :: Type) :: Maybe (Type -> Constraint)
@@ -336,11 +338,11 @@ type FunctorDstC p a = FromMaybeConstraintFunc (FunctorDstC' p) a
 
 class Semigroupoid cat => Functor cat p where
   fmap ::
-    (ra ~ FunctorT p a, rb ~ FunctorT p b, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b) =>
+    (FunctorTC p a ra, FunctorTC p b rb, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b) =>
     CategoryT cat a b -> CategoryT cat ra rb
 
   default fmap ::
-    (Lift p, Pure p, ra ~ FunctorT p a, rb ~ FunctorT p b, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b, cat ~ FunctionP, FunctorSrcC' p ~ 'Nothing, FunctorDstC' p ~ 'Nothing) =>
+    (Lift p, Pure p, FunctorTC p a ra, FunctorTC p b rb, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b, cat ~ FunctionP, FunctorSrcC' p ~ 'Nothing, FunctorDstC' p ~ 'Nothing) =>
     CategoryT cat a b -> CategoryT cat ra rb
   fmap f x = liftA2 (const f) (pure x) x
 
@@ -348,14 +350,14 @@ type UnconstrainedFunctor cat p = (Functor cat p, FunctorSrcC' p ~ 'Nothing, Fun
 
 infixl 4 <$>
 (<$>) ::
-  (Functor cat p, ra ~ FunctorT p a, rb ~ FunctorT p b, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b) =>
+  (Functor cat p, FunctorTC p a ra, FunctorTC p b rb, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b) =>
   CategoryT cat a b -> CategoryT cat ra rb
 (<$>) = fmap
 
 infixl 4 <$
 class Functor cat p => ConstFunctor cat p where
   (<$) ::
-    (ra ~ FunctorT p a, rb ~ FunctorT p b, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b) =>
+    (FunctorTC p a ra, FunctorTC p b rb, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b) =>
     b -> CategoryT cat ra rb
   default (<$) ::
     (Const cat, ra ~ FunctorT p a, rb ~ FunctorT p b, CategoryC cat a b, CategoryC cat ra rb, FunctorSrcC p a, FunctorDstC p b) =>
@@ -368,55 +370,55 @@ infixl 4 <*>, <*, *>, <**>
 
 class Functor FunctionP p => Lift p where
   liftA2 ::
-    (FunctorSrcC p a, FunctorSrcC p b, FunctorDstC p c) =>
-    (a -> b -> c) -> FunctorT p a -> FunctorT p b -> FunctorT p c
+    (FunctorTC p a ra, FunctorTC p b rb, FunctorTC p c rc, FunctorSrcC p a, FunctorSrcC p b, FunctorDstC p c) =>
+    (a -> b -> c) -> ra -> rb -> rc
   default liftA2 ::
-    (Monad p, Pure p, FunctorSrcC' p ~ 'Nothing, FunctorDstC' p ~ 'Nothing) =>
-    (a -> b -> c) -> FunctorT p a -> FunctorT p b -> FunctorT p c
+    (FunctorTC p a ra, FunctorTC p b rb, FunctorTC p c rc, Monad p, Pure p, FunctorSrcC' p ~ 'Nothing, FunctorDstC' p ~ 'Nothing) =>
+    (a -> b -> c) -> ra -> rb -> rc
   liftA2 f x y = (pure f >>= g x) >>= g y where
     g x' y' = x' >>= (pure . y')
-  (*>) :: (FunctorSrcC p a, FunctorSrcC p b, FunctorDstC p b) => FunctorT p a -> FunctorT p b -> FunctorT p b
+  (*>) :: (FunctorTC p a ra, FunctorTC p b rb, FunctorSrcC p a, FunctorSrcC p b, FunctorDstC p b) => ra -> rb -> rb
   (*>) = liftA2 (flip const)
-  (<*) :: (FunctorSrcC p a, FunctorSrcC p b, FunctorDstC p a) => FunctorT p a -> FunctorT p b -> FunctorT p a
+  (<*) :: (FunctorTC p a ra, FunctorTC p b rb, FunctorSrcC p a, FunctorSrcC p b, FunctorDstC p a) => ra -> rb -> ra
   (<*) = liftA2 const
 
 class Lift p => Apply p where
-  (<*>) :: FunctorDstC p b => FunctorT p (a -> b) -> FunctorT p a -> FunctorT p b
-  default (<*>) :: (FunctorSrcC' p ~ 'Nothing, FunctorDstC p b) => FunctorT p (a -> b) -> FunctorT p a -> FunctorT p b
+  (<*>) :: (FunctorDstC p b, FunctorTC p (a -> b) rab, FunctorTC p a ra, FunctorTC p b rb) => rab -> ra -> rb
+  default (<*>) :: (FunctorSrcC' p ~ 'Nothing, FunctorDstC p b, FunctorTC p (a -> b) rab, FunctorTC p a ra, FunctorTC p b rb) => rab -> ra -> rb
   (<*>) = liftA2 id
 
-(<**>) :: (Apply p, FunctorDstC p b) => FunctorT p a -> FunctorT p (a -> b) -> FunctorT p b
+(<**>) :: (Apply p, FunctorDstC p b, FunctorTC p (a -> b) rab, FunctorTC p a ra, FunctorTC p b rb) => ra -> rab -> rb
 (<**>) = flip (<*>)
 
 class Pure p where
-  pure :: FunctorDstC p a => a -> FunctorT p a
+  pure :: (FunctorDstC p a, FunctorTC p a ra) => a -> ra
 
 type Applicative p = (Apply p, Pure p)
 
 infixl 1 >>, >>=
 class (Lift p, Pure p) => Monad p where
-  (>>=) :: (FunctorSrcC p a, FunctorSrcC p b, FunctorDstC p b) => FunctorT p a -> (a -> FunctorT p b) -> FunctorT p b
-  (>>) :: (FunctorSrcC p a, FunctorSrcC p b, FunctorDstC p b) => FunctorT p a -> FunctorT p b -> FunctorT p b
+  (>>=) :: (FunctorSrcC p a, FunctorSrcC p b, FunctorDstC p b, FunctorTC p a ra, FunctorTC p b rb) => ra -> (a -> rb) -> rb
+  (>>) :: (FunctorSrcC p a, FunctorSrcC p b, FunctorDstC p b, FunctorTC p a ra, FunctorTC p b rb) => ra -> rb -> rb
   m >> k = m >>= Prelude.const k
 
-return :: (Monad p, FunctorDstC p a) => a -> FunctorT p a
+return :: (Monad p, FunctorDstC p a, FunctorTC p a ra) => a -> ra
 return = pure
 
 infixr 1  =<<
 (=<<) :: (Monad p, FunctorSrcC p a, FunctorSrcC p b, FunctorDstC p b) => (a -> FunctorT p b) -> FunctorT p a -> FunctorT p b
 (=<<) = flip (>>=)
 
+data BasicFunctorP (f :: Type -> Type)
 
-data BasicFunctorP f
-type instance FunctorSrcC' (BasicFunctorP _) = 'Nothing
-type instance FunctorDstC' (BasicFunctorP _) = 'Nothing
-
-data ConstantP (a :: Type)
-type instance FunctorT (BasicFunctorP (ConstantP a)) b = Constant a b
-instance Functor FunctionP (BasicFunctorP (ConstantP a)) where
+type instance FunctorT (BasicFunctorP (Constant a)) b = (Constant a) b
+type instance FunctorSrcC' (BasicFunctorP (Constant a)) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP (Constant a)) = 'Nothing
+instance Functor FunctionP (BasicFunctorP (Constant a)) where
   fmap = Prelude.fmap
 
 type instance FunctorT (BasicFunctorP Maybe) a = Maybe a
+type instance FunctorSrcC' (BasicFunctorP Maybe) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP Maybe) = 'Nothing
 instance Functor FunctionP (BasicFunctorP Maybe) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP Maybe) where
@@ -430,6 +432,8 @@ instance Monad (BasicFunctorP Maybe) where
   (>>) = (Prelude.>>)
 
 type instance FunctorT (BasicFunctorP Identity) a = Identity a
+type instance FunctorSrcC' (BasicFunctorP Identity) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP Identity) = 'Nothing
 instance Functor FunctionP (BasicFunctorP Identity) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP Identity) where
@@ -443,6 +447,8 @@ instance Monad (BasicFunctorP Identity) where
   (>>) = (Prelude.>>)
 
 type instance FunctorT (BasicFunctorP NonEmpty) a = NonEmpty a
+type instance FunctorSrcC' (BasicFunctorP NonEmpty) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP NonEmpty) = 'Nothing
 instance Functor FunctionP (BasicFunctorP NonEmpty) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP NonEmpty) where
@@ -456,6 +462,8 @@ instance Monad (BasicFunctorP NonEmpty) where
   (>>) = (Prelude.>>)
 
 type instance FunctorT (BasicFunctorP (Either a)) b = Either a b
+type instance FunctorSrcC' (BasicFunctorP (Either a)) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP (Either a)) = 'Nothing
 instance Functor FunctionP (BasicFunctorP (Either a)) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP (Either a)) where
@@ -469,6 +477,8 @@ instance Monad (BasicFunctorP (Either a)) where
   (>>) = (Prelude.>>)
 
 type instance FunctorT (BasicFunctorP []) a = [a]
+type instance FunctorSrcC' (BasicFunctorP []) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP []) = 'Nothing
 instance Functor FunctionP (BasicFunctorP []) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP []) where
@@ -482,6 +492,8 @@ instance Monad (BasicFunctorP []) where
   (>>) = (Prelude.>>)
 
 type instance FunctorT (BasicFunctorP IO) a = IO a
+type instance FunctorSrcC' (BasicFunctorP IO) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP IO) = 'Nothing
 instance Functor FunctionP (BasicFunctorP IO) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP IO) where
@@ -495,6 +507,8 @@ instance Monad (BasicFunctorP IO) where
   (>>) = (Prelude.>>)
 
 type instance FunctorT (BasicFunctorP Option) a = Option a
+type instance FunctorSrcC' (BasicFunctorP Option) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP Option) = 'Nothing
 instance Functor FunctionP (BasicFunctorP Option) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP Option) where
@@ -508,6 +522,8 @@ instance Monad (BasicFunctorP Option) where
   (>>) = (Prelude.>>)
 
 type instance FunctorT (BasicFunctorP Tree) a = Tree a
+type instance FunctorSrcC' (BasicFunctorP Tree) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP Tree) = 'Nothing
 instance Functor FunctionP (BasicFunctorP Tree) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP Tree) where
@@ -521,6 +537,8 @@ instance Monad (BasicFunctorP Tree) where
   (>>) = (Prelude.>>)
 
 type instance FunctorT (BasicFunctorP Min) a = Min a
+type instance FunctorSrcC' (BasicFunctorP Min) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP Min) = 'Nothing
 instance Functor FunctionP (BasicFunctorP Min) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP Min) where
@@ -534,6 +552,8 @@ instance Monad (BasicFunctorP Min) where
   (>>) = (Prelude.>>)
 
 type instance FunctorT (BasicFunctorP Max) a = Max a
+type instance FunctorSrcC' (BasicFunctorP Max) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP Max) = 'Nothing
 instance Functor FunctionP (BasicFunctorP Max) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP Max) where
@@ -547,6 +567,8 @@ instance Monad (BasicFunctorP Max) where
   (>>) = (Prelude.>>)
 
 type instance FunctorT (BasicFunctorP Last) a = Last a
+type instance FunctorSrcC' (BasicFunctorP Last) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP Last) = 'Nothing
 instance Functor FunctionP (BasicFunctorP Last) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP Last) where
@@ -560,6 +582,8 @@ instance Monad (BasicFunctorP Last) where
   (>>) = (Prelude.>>)
 
 type instance FunctorT (BasicFunctorP First) a = First a
+type instance FunctorSrcC' (BasicFunctorP First) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP First) = 'Nothing
 instance Functor FunctionP (BasicFunctorP First) where
   fmap = Prelude.fmap
 instance Pure (BasicFunctorP First) where
@@ -652,6 +676,8 @@ arrayLiftA2 f x y = Data.Array.IArray.array (lbound, ubound) [(index_f x_i y_i, 
   ubound = index_f x_u y_u
 
 type instance FunctorT (BasicFunctorP (Array i)) e = Array i e
+type instance FunctorSrcC' (BasicFunctorP (Array i)) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP (Array i)) = 'Nothing
 instance (Ix i) => Functor FunctionP (BasicFunctorP (Array i)) where
   fmap = arrayFmap
 instance (Ix i, Num i) => Pure (BasicFunctorP (Array i)) where
@@ -660,46 +686,43 @@ instance (Ix i, Num i) => Lift (BasicFunctorP (Array i)) where
   liftA2 = arrayLiftA2
 instance (Ix i, Num i) => Apply (BasicFunctorP (Array i))
 
-data UArrayP (indexT :: Type)
-
 class (IArray UArray e) => UArrayC e
 instance (IArray UArray e) => UArrayC e
 
-type instance FunctorT (UArrayP i) e = UArray i e
-type instance FunctorSrcC' (UArrayP i) = 'Just UArrayC
-type instance FunctorDstC' (UArrayP i) = 'Just UArrayC
+type instance FunctorT (BasicFunctorP (UArray i)) e = UArray i e
+type instance FunctorSrcC' (BasicFunctorP (UArray i)) = 'Just UArrayC
+type instance FunctorDstC' (BasicFunctorP (UArray i)) = 'Just UArrayC
 
-instance (Ix i) => Functor FunctionP (UArrayP i) where
+instance (Ix i) => Functor FunctionP (BasicFunctorP (UArray i)) where
   fmap = arrayFmap
-instance (Ix i, Num i) => Pure (UArrayP i) where
+instance (Ix i, Num i) => Pure (BasicFunctorP (UArray i)) where
   pure = arrayPure
-instance (Ix i, Num i) => Lift (UArrayP i) where
+instance (Ix i, Num i) => Lift (BasicFunctorP (UArray i)) where
   liftA2 = arrayLiftA2
 
 -- Sets
 
-data SetP
-
 class (Ord (ToType b)) => SetDstC b
 instance (Ord (ToType b)) => SetDstC b
 
-type instance FunctorT SetP a = Set a
-type instance FunctorSrcC' SetP = 'Nothing
-type instance FunctorDstC' SetP = 'Just SetDstC
+type instance FunctorT (BasicFunctorP Set) a = Set a
+type instance FunctorSrcC' (BasicFunctorP Set) = 'Nothing
+type instance FunctorDstC' (BasicFunctorP Set) = 'Just SetDstC
 
-instance Functor FunctionP SetP where
+instance Functor FunctionP (BasicFunctorP Set) where
   fmap = Data.Set.map
-instance Pure SetP where
+instance Pure (BasicFunctorP Set) where
   pure = Data.Set.singleton
-instance Lift SetP where
+instance Lift (BasicFunctorP Set) where
   liftA2 f x y = Data.Set.fromList (Control.Applicative.liftA2 f (Data.Set.toList x) (Data.Set.toList y))
-instance Apply SetP
-instance Monad SetP where
+instance Apply (BasicFunctorP Set)
+instance Monad (BasicFunctorP Set) where
   x >>= f = Data.Set.fromList (Data.Set.toList x >>= (Data.Set.toList . f))
 
 data TupleP (n :: Nat)
 type instance FunctorSrcC' (TupleP _) = 'Nothing
 type instance FunctorDstC' (TupleP _) = 'Nothing
+
 
 -- Tuple
 type instance FunctorT (TupleP 2) a = (a,a)

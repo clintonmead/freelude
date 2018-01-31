@@ -3,9 +3,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Freelude.Impl.MakeFunctor (
-  MakeFunctor(getFunctor)
+--  MakeFunctor(getFunctor)
 ) where
-
+  {-
 import Prelude hiding (Functor, fmap, Monad)
 import qualified Prelude
 import Data.Kind (Type)
@@ -35,3 +35,4 @@ instance Prelude.Applicative f => Pure (MakeFunctorP f) where
 instance Prelude.Monad f => Monad (MakeFunctorP f) where
   (MakeFunctor x) >>= f = MakeFunctor (x Prelude.>>= f') where
     f' x' = getFunctor (f x')
+-}
